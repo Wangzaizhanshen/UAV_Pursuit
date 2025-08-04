@@ -62,8 +62,8 @@ class UAVPursuit(gym.Env):
         # 敌方巡飞弹设置
         self.target_num = 10  # 敌方巡飞弹数量
         self.target_r = 1
-        self.tar_v_max = self.uav_v_max *0.9
-        self.tar_v_min = self.uav_v_min *0.9
+        self.tar_v_max = self.uav_v_max * 0.9
+        self.tar_v_min = self.uav_v_min * 0.9
         self.t_com_dis = 50  # 巡飞弹通信距离
         self.t_probe = 50  # 巡飞弹雷达探测距离
         self.t_probe_theta = 75  # 巡飞弹雷达探测半角°
@@ -1443,22 +1443,24 @@ class UAVPursuit(gym.Env):
 
         def update_lines(num, walks, lines, lines1, points, points1):
             for i in range(len(walks)):
-                # print("num:",num)
+                # 处理无人机轨迹和点print("num:",num)
                 for line, point, j in zip(lines, points, range(self.uav_num)):
-                    # print(j,":",len(self.uav_x[j]))
                     if num <= len(self.uav_x[j]):
                         line.set_data(self.uav_x[j][:num], self.uav_y[j][:num])
-                        point.set_data(self.uav_x[j][num - 1], self.uav_y[j][num - 1])
+                        point.set_data([self.uav_x[j][num - 1]], [self.uav_y[j][num - 1]])  # 已修正
                     else:
                         line.set_data(self.uav_x[j][:], self.uav_y[j][:])
-                        point.set_data(self.uav_x[j][-1], self.uav_y[j][-1])
+                        # 修正：将单个数值转为列表（序列）
+                        point.set_data([self.uav_x[j][-1]], [self.uav_y[j][-1]])
+
+                # 处理目标轨迹和点
                 for line1, point1, k in zip(lines1, points1, range(self.target_num)):
                     if num <= len(self.t_x[k]):
-                        line1.set_data(self.t_x[k][:num], self.t_y[k][:num], )
-                        point1.set_data(self.t_x[k][num - 1], self.t_y[k][num - 1])
+                        line1.set_data(self.t_x[k][:num], self.t_y[k][:num])
+                        point1.set_data([self.t_x[k][num - 1]], [self.t_y[k][num - 1]])  # 已修正
                     else:
-                        line1.set_data(self.t_x[k][:], self.t_y[k][:], )
-                        point1.set_data(self.t_x[k][-1], self.t_y[k][-1])
+                        line1.set_data(self.t_x[k][:], self.t_y[k][:])
+                        point1.set_data([self.t_x[k][-1]], [self.t_y[k][-1]])
             return lines, lines1, points, points1
 
         max1 = 0
@@ -1471,10 +1473,9 @@ class UAVPursuit(gym.Env):
 
         ani = FuncAnimation(fig, update_lines, frames=frame, fargs=(data, lines, lines1, points, points1),
                             interval=20)
-        ani.save('D:/code/UAV_Pursuit/GL_MFDDPG/动图{}.gif'.format(episode), writer='pillow',
+        ani.save('E:/pyPractice/UAV_Pursuit/GL_MFDDPG/动图shi{}.gif'.format(episode), writer='pillow',
                  fps=1000)
         plt.show()
-
 
 # uav = UAVPursuit()
 # uav.reset()
