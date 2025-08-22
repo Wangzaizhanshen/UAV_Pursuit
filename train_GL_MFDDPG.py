@@ -118,15 +118,15 @@ def main():
             # 为每个追捕无人机选择动作
             for i in range(env.uav_num):
                 # 构建LSTM网络的输入（时间步长为9的状态序列）
-                state_LSTM = np.stack((state0[i],
-                                       (state0 + delta_x)[i],
-                                       (state0 + delta_x * 2)[i],
-                                       (state0 + delta_x * 3)[i],
-                                       (state0 + delta_x * 4)[i],
-                                       (state0 + delta_x * 5)[i],
-                                       (state0 + delta_x * 6)[i],
-                                       (state0 + delta_x * 7)[i],
-                                       env.state[i]), axis=0)
+                state_LSTM = np.stack((state0[i],  # 第0步状态
+                                       (state0 + delta_x)[i],  # 第1步预测状态
+                                       (state0 + delta_x * 2)[i],  # 第2步预测状态
+                                       (state0 + delta_x * 3)[i],  # 第3步
+                                       (state0 + delta_x * 4)[i],  # 第4步
+                                       (state0 + delta_x * 5)[i],  # 第5步
+                                       (state0 + delta_x * 6)[i],  # 第6步
+                                       (state0 + delta_x * 7)[i],  # 第7步
+                                       env.state[i]), axis=0)  # 第8步（当前状态）形状为(9, 16)：9个时间步，每个步16维状态
                 # 选择当前状态下的动作
                 action[i], action_[i] = agent.choose_action(state_LSTM, train=True)
                 uav_act[i] = action[i]
@@ -226,8 +226,18 @@ def main():
                                         (state1_ + delta_y_ * 7)[i],
                                         env.state_[i]), axis=0)
                 # 将经验存储到回放池
-                agent.remember(state_LSTM, env.action[i], env.reward[i], env.done[i], state_LSTM_,
-                               uav_act, uav_act_, uav_adj, uav_s, uav_s_)
+                agent.remember(
+                    state_LSTM,  # 当前状态（时间序列）
+                    env.action[i],  # 执行的动作
+                    env.reward[i],  # 获得的奖励
+                    env.done[i],  # 是否结束
+                    state_LSTM_,  # 下一步状态（时间序列）
+                    uav_act,  # 所有无人机的当前动作
+                    uav_act_,  # 所有无人机的下一步动作
+                    uav_adj,  # 邻接矩阵
+                    uav_s,  # 所有无人机的当前状态
+                    uav_s_  # 所有无人机的下一步状态
+                )
 
             # 初始化目标/逃逸无人机的均值场动作列表
             t_act_mf, t_act_mf_ = [], []
